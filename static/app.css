@@ -5,11 +5,22 @@ body{
 }
 
 main{
-  display: flex;
-  flex-direction: column;
   height: 100vh;
 }
 
+textarea{
+  resize: none;
+  outline: none;
+  display:none;
+}
+
+textarea:focus{
+  border-color: white;
+}
+
+#display{
+  width: 70%;
+}
 
 #input{
   width: 70%
@@ -19,6 +30,19 @@ main{
   width: 30%
 }
 
+#evaluation{
+  display: block;
+  overflow-y: visible;
+}
+
+#evaluation h1, h2, h3{ 
+  margin: 10px auto; 
+  width: fit-content;
+}
+
+#feedback{
+  height: fit-content;
+}
 /*
   flex: 1;
   display: flex;
@@ -26,6 +50,11 @@ main{
   align-items: center;
   height: 100%;
 */
+
+.warning{
+  color: red;
+}
+
 .container{
   border-radius: 10px;
   border-width: 3px;
@@ -33,20 +62,18 @@ main{
   border-style: solid;
   background-color: #292929;
   padding: 5px;
+  margin: 3px;
+}
+
+.textbox{
+  font-family: Arial, Helvetica, sans-serif;
+  color:white;
+  line-height: 1.5; 
 }
 
 .widget{
-  flex: 1;
   display: flex;
   width: 100%;
-  height: 50vh;
+  height: 50%;
   justify-content: center;
-}
-
-.x-flex{
-
-}
-
-.y-flex{
-
 }
