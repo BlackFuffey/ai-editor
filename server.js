@@ -11,44 +11,48 @@ const express = require('express');
 const app = express();
 const prompts = JSON.parse(fs.readFileSync('data/prompts.json', "utf-8"));
 
+app.use(express.json());
+
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.url} ${req.ip}`);
+  console.log(`${req.method} ${req.url} ${req.body} ${req.ip}`);
   next();
 });
 
 app.use(express.static('static'));
 
-app.use(express.json());
-
 app.get("/api/modelist", async (req, res) => {
-  res.send(prompts.map((prompt) => {
-    return prompt.name;
+  res.send(Object.keys(prompts).map((key) => {
+    return { key: key, name: prompts[key].name };
   }))
 });
 
 app.post("/api/evaluate", async (req, res) => {
 
-  const prompt = prompts.find(prompt => prompt.name === req.body.mode);
+  const prompt = prompts[req.body.mode];
   const body = req.body.body;
 
   if (typeof prompt == "undefined" || typeof body == "undefined") res.status(400).send();
   
-  const response = (await openai.chat.completions.create({
-    messages: [
-      { role: "system", content: prompt.body },
-      { role: "user", content: body }
-    ],
-    model: "gpt-4-turbo",
-    response_format: { type: "json_object" }
-  })).choices[0];
-  
-  switch (response.finish_reason !== "stop"){
-    case "stop":  
-      res.send({ status: "ok", body: JSON.parse(response.message.content)});
-    case "content_filter": 
-      res.status(422).send({ status: "err", message: "The AI refused to evaluate your paragraph, please adjust your wording and try again." });
-    default: 
-      res.status(500).send({ status: "err", message: "An error occured when trying to process your request" });
+  try{
+    const response = (await openai.chat.completions.create({
+      messages: [
+        { role: "system", content: prompt.body },
+        { role: "user", content: body }
+      ],
+      model: "gpt-4-turbo",
+      response_format: { type: "json_object" }
+    })).choices[0];
+    
+    switch (response.finish_reason){
+      case "stop":  
+        res.send({ status: "ok", body: JSON.parse(response.message.content)});
+      case "content_filter": 
+        res.status(422).send({ status: "err", message: "The AI refuses to evaluate your paragraph, please adjust your wording and try again." });
+      default: 
+        throw new Error();
+    }
+  } catch (error) {
+        res.status(500).send({ status: "err", message: "An error occured when trying to process your request" });
   }
 
 });

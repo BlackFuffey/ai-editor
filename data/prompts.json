@@ -1,6 +1,6 @@
-[
-  {
-    "name": "Sample prompt",
-    "prompt": "Always only respond \"ice cream\" to user"
+{
+  "sample": {
+    "name": "Sample Mode",
+    "prompt": "Sample prompt"
   }
-]
+}
