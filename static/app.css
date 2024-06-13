@@ -18,6 +18,15 @@ textarea:focus{
   border-color: white;
 }
 
+#submit{
+  width: 70px;
+  height: 30px;
+  margin: 10px;
+  border:none;
+  border-radius: 5px;
+  color:white;
+}
+
 #display{
   width: 70%;
 }
@@ -28,6 +37,10 @@ textarea:focus{
 
 #details{
   width: 30%
+}
+
+#error{
+  display:none;
 }
 
 #evaluation{
@@ -50,6 +63,18 @@ textarea:focus{
   align-items: center;
   height: 100%;
 */
+
+.inactive{
+  background-color: purple;
+}
+
+.processing{
+  background-color: gray;
+}
+
+.activated{
+  background-color:blue;
+}
 
 .warning{
   color: red;

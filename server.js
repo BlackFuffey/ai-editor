@@ -44,11 +44,11 @@ app.post("/api/evaluate", async (req, res) => {
   
   switch (response.finish_reason !== "stop"){
     case "stop":  
-      res.send(JSON.parse(response.message.content));
+      res.send({ status: "ok", body: JSON.parse(response.message.content)});
     case "content_filter": 
-      res.status(422).send({ status: "failed", message: "The AI refused to evaluate your paragraph, please adjust your wording and try again." });
+      res.status(422).send({ status: "err", message: "The AI refused to evaluate your paragraph, please adjust your wording and try again." });
     default: 
-      res.status(500).send({ status: "failed", message: "An error occured when trying to process your request" });
+      res.status(500).send({ status: "err", message: "An error occured when trying to process your request" });
   }
 
 });
