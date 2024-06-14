@@ -26,6 +26,8 @@ var currentDoc;
 
 const evaluate = async () => {
 
+  console.log("Evaluating");
+
   setSubmitState("process");
   resetUI();
 
@@ -40,6 +42,7 @@ const evaluate = async () => {
     })).json();
   } catch (error) {
     setError(`Request failed: ${error}`);
+    console.log(error);
     return;
   } finally { setSubmitState("inactive"); }
 
@@ -55,6 +58,10 @@ const evaluate = async () => {
   flipBody(false);
   
 };
+
+function getMode(){
+  return document.getElementById("mode").value;
+}
 
 function setElementVisibility(element, visible){
   if (visible) element.className = element.className.replace("hidden ", "");
@@ -76,7 +83,7 @@ function setError(err, visible=true){
 
 function flipBody(side){
   setElementVisibility(document.getElementById("input"), side);
-  setElementVisibility(document.getElementById("input"), !side);
+  setElementVisibility(document.getElementById("display"), !side);
 }
 
 function setSubmitState(state){
@@ -124,13 +131,48 @@ function setEvaluationVisible(visible){ setElementVisibility(document.getElement
 
 function updateDisplay(){
   if (!currentDoc) throw new Error("Attempting to update display to non existance document");
+  
+  let spanId = [];
+  document.getElementById("display").innerText = currentDoc.body.replace(/\[.*?\]\{.*?\}/g, (match) => {
+    // Extract the text within the brackets and braces
+    const regex = /\[(.*?)\]\{(.*?)\}/;
+    const matches = regex.exec(match);
+
+    if (matches) {
+      const bracketText = matches[1];
+      const braceText = matches[2];
+      
+      const spanId = `span-${braceText}`;
+      
+      (async () => {
+        if (spanList.includes(spanId)) return;
+
+        spanList.push(spanId);
+        let spanElm;
+        
+
+        for (let i = 0; !spanElm; i++){
+          if (i > 50) throw new Error(`Timeout waiting for ${spanId}`);
+          
+          spanElm = document.getElementById(spanId);
+
+          await new Promise(resolve => settimeout(resolve, 500));
+        }
+        
+        spanElm.addEventListener("click", () => { setDetails(braceText) });
+
+      })()
+
+      return `<span id=${spanId} class="${currentDoc[braceText].type}">${bracketText}:${braceText}</span>`;
+    }
+
+    return match;
+  });
 
   
 }
 
-function exportDisplay(){
-
-}
+function exportDisplay(){ return document.getElementById("display").innerText; }
 
 resetUI();
 setSubmitState("inactive");
