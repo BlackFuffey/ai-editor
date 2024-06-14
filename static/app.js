@@ -65,26 +65,18 @@ function setElementVisibility(element, visible){
 
 const finishReview = async () => {
   document.getElementById("input").value = exportDisplay();
-  setDetails(null);
+  setDetails(-1);
 }
 
 function setError(err, visible=true){
   const error = document.getElementById("error");
   error.innerText = err;
-  if (visible) error.className = "hidden " + error.className
-  else error.style.display = "none";
+  setElementVisibility(error, visible);
 }
 
 function flipBody(side){
-  const input = document.getElementById("input");
-  const display = document.getElementById("display");
-  if (side){
-    input.className = input.className.replace("hidden ", "");
-    display.className = "hidden " + display.className;
-  } else {
-    display.className = display.className.replace("hidden ", "");
-    input.className = "hidden " + display.className;
-  }
+  setElementVisibility(document.getElementById("input"), side);
+  setElementVisibility(document.getElementById("input"), !side);
 }
 
 function setSubmitState(state){
@@ -118,10 +110,22 @@ function resetUI(){
   setEvaluationVisible(false);
 }
 
+function setDetails(i){
+  const detailContainer = document.getElementById("details");
+
+  if (i === -1){
+    detailContainer.innerHTML = "";
+    return;
+  }
+  
+}
+
 function setEvaluationVisible(visible){ setElementVisibility(document.getElementById("evaluation"), visible); }
 
-function setDisplay(){
+function updateDisplay(){
+  if (!currentDoc) throw new Error("Attempting to update display to non existance document");
 
+  
 }
 
 function exportDisplay(){
