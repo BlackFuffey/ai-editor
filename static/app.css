@@ -60,6 +60,18 @@ button{
   border-style: none;
 }
 
+.comment{
+  background: #87CEEB80;
+}
+
+.wording{
+  background: #00FF0080;
+}
+
+.suggestion{
+  background: #FFC0CB80;
+}
+
 .typo{
   background: #FFFF8080;
 }

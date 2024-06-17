@@ -141,32 +141,38 @@ function setDetails(highlight){
   }
 
   const acceptId = `detail-${i}`;
-
-  if (original.split(" ").length > 50) detailContainer.innerHTML = `
-    <small>${type}</small>
-    <h2>${original}</h2>
-    <h3>↓</h3>
-    <h2>${currentDoc[i].replace}</h2>
-    <br>
-    <h3>Reason</h3>
-    <p>${currentDoc[i].reason}</p>
-    <button id=${acceptId} class="detail-accept">Accept</button>`
-
-  else detailContainer.innerHTML = `
-    <small>${type}</small>
-    <h2>${original} → ${currentDoc[i].replace}</h2>
-    <br>
-    <h3>Reason</h3>
-    <p>${currentDoc[i].reason}</p>
-    <button id=${acceptId} class="detail-accept">Accept</button>`
   
-  predictElement(acceptId, (e) => {
-      e.addEventListener('click', () => {
-          highlight.className = '';
-          highlight.innerText = currentDoc[i].replace;
-          highlight.outerHTML = highlight.outerHTML;
-      });
-  });
+  if (currentDoc[i].replace){
+
+    if (original.split(" ").length > 50) detailContainer.innerHTML = `
+      <small>${type}</small>
+      <h2>${original}</h2>
+      <h3>↓</h3>
+      <h2>${currentDoc[i].replace}</h2>
+      <br>
+      <h3>Reason</h3>
+      <p>${currentDoc[i].reason}</p>
+      <button id=${acceptId} class="detail-accept">Accept</button>`
+
+    else detailContainer.innerHTML = `
+      <small>${type}</small>
+      <h2>${original} → ${currentDoc[i].replace}</h2>
+      <br>
+      <h3>Reason</h3>
+      <p>${currentDoc[i].reason}</p>
+      <button id=${acceptId} class="detail-accept">Accept</button>`
+    
+    predictElement(acceptId, (e) => {
+        e.addEventListener('click', () => {
+            highlight.className = '';
+            highlight.innerText = currentDoc[i].replace;
+            highlight.outerHTML = highlight.outerHTML;
+        });
+    });
+  } else detailContainer.innerHTML = `
+          <small>${type}</small>
+          <h3>Comment</h3>
+          <p>${currentDoc[i].reason}</p>`
 
 }
 
