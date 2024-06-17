@@ -20,7 +20,7 @@ textarea:focus{
   border-color: white;
 }
 
-#submit{
+button{
   width: 70px;
   height: 30px;
   margin: 10px;
@@ -41,15 +41,12 @@ textarea:focus{
   width: 30%
 }
 
-#error{
-}
-
 #evaluation{
   display: block;
   overflow-y: visible;
 }
 
-#evaluation h1, h2, h3{ 
+#evaluation h1, #evaluation h2, #evaluation h3{ 
   margin: 10px auto; 
   width: fit-content;
 }
@@ -57,16 +54,22 @@ textarea:focus{
 #feedback{
   height: fit-content;
 }
-/*
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-*/
+
+.detail-accept{
+  background: red;
+  border-style: none;
+}
+
+.typo{
+  background: #FFFF8080;
+}
+
+.grammar{
+  background: #FF000080;
+}
 
 .hidden{
-  display: none;
+  display: none !important;
 }
 
 .inactive{
@@ -93,6 +96,7 @@ textarea:focus{
   background-color: #292929;
   padding: 5px;
   margin: 3px;
+  overflow-y: scroll;
 }
 
 .textbox{

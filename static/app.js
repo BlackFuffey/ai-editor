@@ -53,10 +53,10 @@ const evaluate = async () => {
 
   currentDoc = response.body;
 
-  updateDisplay();
-  setEvaluationVisible();
+  renderDoc();
+  setEvaluationVisible(true);
   flipBody(false);
-  
+  setSubmitState("active");
 };
 
 function getMode(){
@@ -64,7 +64,7 @@ function getMode(){
 }
 
 function setElementVisibility(element, visible){
-  if (visible) element.className = element.className.replace("hidden ", "");
+  if (visible) element.className = element.className.replace(/hidden /g, "");
   else element.className = "hidden " + element.className;
 }
    
@@ -72,7 +72,8 @@ function setElementVisibility(element, visible){
 
 const finishReview = async () => {
   document.getElementById("input").value = exportDisplay();
-  setDetails(-1);
+  setSubmitState("inactive");
+  resetUI();
 }
 
 function setError(err, visible=true){
@@ -93,6 +94,7 @@ function setSubmitState(state){
       submit.className = "inactive";
       submit.innerText = "Evaluate";
       submit.disabled = false;
+      submit.removeEventListener("click", finishReview);
       submit.addEventListener("click", evaluate);
       break;
     case "process":
@@ -102,9 +104,10 @@ function setSubmitState(state){
       break;
     case "active":
       submit.className = "activated";
-      submit.innerText = "Accept";
+      submit.innerText = "Finish";
       submit.disabled = false;
-      submit.addEventListener("click", SubmitEvent);
+      submit.removeEventListener("click", evaluate);
+      submit.addEventListener("click", finishReview);
       break;
     default:
       throw new Error(`Invalid button state ${state}`);
@@ -115,25 +118,74 @@ function resetUI(){
   flipBody(true);
   setError("", false);
   setEvaluationVisible(false);
+  setDetails();
 }
 
-function setDetails(i){
+function setDetails(highlight){
   const detailContainer = document.getElementById("details");
 
-  if (i === -1){
+  if (!highlight){
     detailContainer.innerHTML = "";
     return;
   }
+
+  console.log(highlight);
+
+  const i = +highlight.id.replace('span-', '');
+  const original = highlight.innerText;
   
+  let type = "missingno";
+  switch(currentDoc[i].type){
+    case "grammar": type = "Grammar"; break;
+    case "typo": type = "Typo"; break;
+  }
+
+  const acceptId = `detail-${i}`;
+
+  if (original.split(" ").length > 50) detailContainer.innerHTML = `
+    <small>${type}</small>
+    <h2>${original}</h2>
+    <h3>↓</h3>
+    <h2>${currentDoc[i].replace}</h2>
+    <br>
+    <h3>Reason</h3>
+    <p>${currentDoc[i].reason}</p>
+    <button id=${acceptId} class="detail-accept">Accept</button>`
+
+  else detailContainer.innerHTML = `
+    <small>${type}</small>
+    <h2>${original} → ${currentDoc[i].replace}</h2>
+    <br>
+    <h3>Reason</h3>
+    <p>${currentDoc[i].reason}</p>
+    <button id=${acceptId} class="detail-accept">Accept</button>`
+  
+  predictElement(acceptId, (e) => {
+      e.addEventListener('click', () => {
+          highlight.className = '';
+          highlight.innerText = currentDoc[i].replace;
+          highlight.outerHTML = highlight.outerHTML;
+      });
+  });
+
 }
 
 function setEvaluationVisible(visible){ setElementVisibility(document.getElementById("evaluation"), visible); }
 
-function updateDisplay(){
-  if (!currentDoc) throw new Error("Attempting to update display to non existance document");
+function renderDoc(){
+  if (!currentDoc) throw new Error("Attempted to render non existance doc");
   
-  let spanId = [];
-  document.getElementById("display").innerText = currentDoc.body.replace(/\[.*?\]\{.*?\}/g, (match) => {
+  console.log(currentDoc);
+
+  document.getElementById("feedback").innerText = currentDoc.feedback;
+
+  document.getElementById("rating").innerText = currentDoc.rating;
+
+  let spanList = [];
+
+  document.getElementById("display").innerHTML = '';
+
+  document.getElementById("display").innerHTML = currentDoc.body.replace(/\[.*?\]\{.*?\}/g, (match) => {
     // Extract the text within the brackets and braces
     const regex = /\[(.*?)\]\{(.*?)\}/;
     const matches = regex.exec(match);
@@ -143,33 +195,32 @@ function updateDisplay(){
       const braceText = matches[2];
       
       const spanId = `span-${braceText}`;
-      
-      (async () => {
-        if (spanList.includes(spanId)) return;
-
+      if (!spanList.includes(spanId)) {
         spanList.push(spanId);
-        let spanElm;
-        
+        predictElement(spanId, element => element.addEventListener("click", () => { setDetails(element) }));
+      };
 
-        for (let i = 0; !spanElm; i++){
-          if (i > 50) throw new Error(`Timeout waiting for ${spanId}`);
-          
-          spanElm = document.getElementById(spanId);
-
-          await new Promise(resolve => settimeout(resolve, 500));
-        }
-        
-        spanElm.addEventListener("click", () => { setDetails(braceText) });
-
-      })()
-
-      return `<span id=${spanId} class="${currentDoc[braceText].type}">${bracketText}:${braceText}</span>`;
+      return `<span id=${spanId} class="${currentDoc[braceText].type}">${bracketText}</span>`;
     }
 
     return match;
   });
 
   
+}
+
+async function predictElement(id, action){
+  let element;
+
+  for (let i = 0; !element; i++){
+    if (i > 50) throw new Error(`Timeout waiting for ${id} to materialize`);
+
+    element = document.getElementById(id);
+
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+
+  action(element);
 }
 
 function exportDisplay(){ return document.getElementById("display").innerText; }

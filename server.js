@@ -31,28 +31,43 @@ app.post("/api/evaluate", async (req, res) => {
   const prompt = prompts[req.body.mode];
   const body = req.body.body;
 
-  if (typeof prompt == "undefined" || typeof body == "undefined") res.status(400).send();
+  if (typeof prompt == "undefined" || typeof body == "undefined") return res.status(400).send();
   
+  let total = "";
   try{
-    const response = (await openai.chat.completions.create({
-      messages: [
-        { role: "system", content: prompt.body },
+    for (let i = 1; i <= 10; i++){
+
+      let conv = [
+        { role: "system", content: prompt.prompt },
         { role: "user", content: body }
-      ],
-      model: "gpt-4-turbo",
-      response_format: { type: "json_object" }
-    })).choices[0];
-    
-    switch (response.finish_reason){
-      case "stop":  
-        res.send({ status: "ok", body: JSON.parse(response.message.content)});
-      case "content_filter": 
-        res.status(422).send({ status: "err", message: "The AI refuses to evaluate your paragraph, please adjust your wording and try again." });
-      default: 
-        throw new Error();
+      ];
+
+      if (total !== "") conv.push({ role: "assistant", content: total });
+
+      const response = (await openai.chat.completions.create({
+        messages: conv,
+        model: "gpt-4o",
+        response_format: { type: "json_object" },
+        max_tokens: null
+      })).choices[0];
+      
+      total += response.message.content;
+
+      switch (response.finish_reason){
+        case "stop":  
+          return res.send({ status: "ok", body: JSON.parse(total)});
+        case "content_filter": 
+          return res.status(422).send({ status: "err", message: "The AI refuses to evaluate your paragraph, please adjust your wording and try again." });
+        case "length":
+          continue;
+        default: 
+          throw new Error();
+      }
     }
+    throw new Error();
   } catch (error) {
-        res.status(500).send({ status: "err", message: "An error occured when trying to process your request" });
+        console.log(error);
+        return res.status(500).send({ status: "err", message: "An error occured when trying to process your request" });
   }
 
 });
