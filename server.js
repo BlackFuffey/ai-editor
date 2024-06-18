@@ -46,7 +46,7 @@ app.post("/api/evaluate", async (req, res) => {
 
       const response = (await openai.chat.completions.create({
         messages: conv,
-        model: "gpt-4o",
+        model: "gpt-4-turbo",
         response_format: { type: "json_object" },
         max_tokens: null
       })).choices[0];
@@ -55,6 +55,7 @@ app.post("/api/evaluate", async (req, res) => {
 
       switch (response.finish_reason){
         case "stop":  
+          console.log(total);
           return res.send({ status: "ok", body: JSON.parse(total)});
         case "content_filter": 
           return res.status(422).send({ status: "err", message: "The AI refuses to evaluate your paragraph, please adjust your wording and try again." });

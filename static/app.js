@@ -210,7 +210,7 @@ function renderDoc(){
     }
 
     return match;
-  });
+  }).replace("\n", "<br>");
 
   
 }
