@@ -55,6 +55,17 @@ button{
   height: fit-content;
 }
 
+.spinner{
+  animation: spinner 1.5s linear infinite; /* Apply animation */
+  width: 15px;
+  height: 15px;
+}
+
+@keyframes spinner {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 .detail-accept{
   background: red;
   border-style: none;

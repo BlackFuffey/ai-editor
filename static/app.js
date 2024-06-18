@@ -99,7 +99,7 @@ function setSubmitState(state){
       break;
     case "process":
       submit.className = "processing";
-      submit.innerText = "Processing";
+      submit.innerHTML = '<img src="/spinner.png" class="spinner" />';
       submit.disabled = true;
       break;
     case "active":
