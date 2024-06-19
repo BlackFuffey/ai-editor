@@ -138,6 +138,9 @@ function setDetails(highlight){
   switch(currentDoc[i].type){
     case "grammar": type = "Grammar"; break;
     case "typo": type = "Typo"; break;
+    case "wording": type = "Wording"; break;
+    case "comment": type = "Comment"; break;
+    case "suggestion": type = "Suggestion"; break;
   }
 
   const acceptId = `detail-${i}`;

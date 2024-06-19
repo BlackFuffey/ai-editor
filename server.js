@@ -11,6 +11,8 @@ const express = require('express');
 const app = express();
 const prompts = JSON.parse(fs.readFileSync('data/prompts.json', "utf-8"));
 
+const modelist = Object.keys(prompts).filter(key => key !== "json").map(key => ({ key, name: prompts[key].name }));
+
 app.use(express.json());
 
 app.use((req, res, next) => {
@@ -21,9 +23,7 @@ app.use((req, res, next) => {
 app.use(express.static('static'));
 
 app.get("/api/modelist", async (req, res) => {
-  res.send(Object.keys(prompts).map((key) => {
-    return { key: key, name: prompts[key].name };
-  }))
+  res.send(modelist);
 });
 
 app.post("/api/evaluate", async (req, res) => {
@@ -35,28 +35,50 @@ app.post("/api/evaluate", async (req, res) => {
   
   let total = "";
   try{
+
+    let conv = [
+      { role: "system", content: prompt.prompt },
+      { role: "user", content: body }
+    ];
+
+    if (total !== "") conv.push({ role: "assistant", content: total });
+
+    const response = (await openai.chat.completions.create({
+      messages: conv,
+      model: "gpt-4-turbo",
+      max_tokens: null
+    })).choices[0];
+    
+    total += response.message.content;
+
+    switch (response.finish_reason){
+      case "stop":  
+        break;
+      case "content_filter": 
+        return res.status(422).send({ status: "err", message: "The AI refuses to evaluate your paragraph, please adjust your wording and try again." });
+      case "length":
+        return res.status(422).send({ status: "err", message: "Your message was too long, please shorten it"});
+      default: 
+        throw new Error();
+    }
+    
+    let jsonTotal = "";
     for (let i = 1; i <= 10; i++){
-
-      let conv = [
-        { role: "system", content: prompt.prompt },
-        { role: "user", content: body }
-      ];
-
-      if (total !== "") conv.push({ role: "assistant", content: total });
-
-      const response = (await openai.chat.completions.create({
-        messages: conv,
+      const jsonResp = (await openai.chat.completions.create({
+        messages:[
+          { role: "system", content: prompts.json.prompt },
+          { role: "user", content: `# Body\n${body}\n\n${total}` }
+        ],
         model: "gpt-4-turbo",
         response_format: { type: "json_object" },
         max_tokens: null
-      })).choices[0];
-      
-      total += response.message.content;
+      })).choices[0]
 
-      switch (response.finish_reason){
+      jsonTotal += jsonResp.message.content;
+
+      switch (jsonResp.finish_reason){
         case "stop":  
-          console.log(total);
-          return res.send({ status: "ok", body: JSON.parse(total)});
+          return res.send({ status: "ok", body: JSON.parse(jsonTotal) });
         case "content_filter": 
           return res.status(422).send({ status: "err", message: "The AI refuses to evaluate your paragraph, please adjust your wording and try again." });
         case "length":
